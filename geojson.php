@@ -6,11 +6,11 @@ namespace Affinity\GeoJSON;
  * Example of a 'simple' GeoJSON Feature factory.
  *
  * @return
- *    A GeoJSON Feature object (see geojson_feature()).
+ *    A GeoJSON Feature object (see feature()).
  */
 function simple_geojson_feature_factory($wkt) {
   $geom = create_geophp_geometry($wkt);
-  return is_null($geom) ? NULL : geojson_feature($geom);
+  return is_null($geom) ? NULL : feature($geom);
 }
 
 /**
@@ -79,7 +79,7 @@ function create_geophp_geometry($object, $to_geom = NULL) {
  *    An array structured as a GeoJSON Feature.
  */
 function feature(\Geometry $geometry, Array $properties = array()) {
-  $feature = new stdclass();
+  $feature = new \stdclass();
   $feature->type = 'Feature';
   $feature->geometry = json_decode($geometry->out('json'));
   $feature->properties = $properties;
@@ -96,7 +96,7 @@ function feature(\Geometry $geometry, Array $properties = array()) {
  *
  * @param Callable $feature_factory
  *    A callable that takes an object representing a geometry and returns a
- *    GeoJSON Feature object (see geojson_feature()).
+ *    GeoJSON Feature object (see feature()).
  *
  * @return
  *    An array structured as a GeoJSON FeatureCollection.
@@ -105,7 +105,7 @@ function feature_collection($items, $feature_factory = NULL) {
   $features = array();
 
   if (is_null($feature_factory)) {
-    $feature_factory = 'simple_geojson_feature_factory';
+    $feature_factory = '\Affinity\GeoJSON\simple_geojson_feature_factory';
   }
 
   foreach ($items as $item) {
