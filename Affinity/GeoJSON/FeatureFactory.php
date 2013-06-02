@@ -6,7 +6,7 @@ namespace Affinity\GeoJSON;
  *
  */
 abstract class FeatureFactory {
-  abstract public function __construct($info);
+  public function __construct($info) {}
 
   abstract public function geometry($item);
 

@@ -2,24 +2,48 @@
 
 namespace Affinity\GeoJSON;
 
+/**
+ *
+ */
 class Resource {
+
+  /* */
+  protected $endpoint;
+
+  /* */
+  protected $factory;
+
+  /* */
+  protected $geometries = array();
+
+  /* */
+  protected $properties = array();
+
+  /* */
+  protected $features = array();
+
+  /* */
+  protected $processed = FALSE;
+
+  /* */
+  protected $route = "/";
+
+  /* */
+  protected $data;
 
   /**
    *
    */
-  public function __construct($info, $data = NULL) {
+  public function __construct($endpoint, $info, $data = NULL) {
     $class = new \ReflectionClass($info['factory']);
-    if (!$class->isSubclassOf('Affinity\GeoJSON\FeatureFactory')) {
+
+    if (!$class->isSubclassOf('Affinity\GeoJSON\FeatureFactory'))
       throw new \RuntimeException('Invalid feature factory.');
-    }
 
-    $this->factory = $class->newInstance($info['factory args']);
-
-    $this->data = $data;
-    $this->processed = FALSE;
-    $this->features = array();
+    $this->endpoint = $endpoint;
     $this->route = $info['route'];
-    $this->properties = isset($info['properties callback']) ? $info['properties callback'] : NULL;
+    $this->factory = $class->newInstance($info['factory args']);
+    $this->data = $data;
   }
 
   /**
@@ -43,12 +67,31 @@ class Resource {
    *
    */
   public function uri() {
+    $route = $this->route;
     $args = func_get_args();
-    $pieces = explode('/', $this->route);
-    foreach ($pieces as $index => $piece) {
-      if ($piece[0] === '%') $pieces[$index] = array_shift($args);
+    if (!empty($args)) {
+      $pieces = explode('/', $route);
+      foreach ($pieces as $index => $piece) {
+        if ($piece[0] === '%') $pieces[$index] = array_shift($args);
+      }
+      $route = implode($pieces, '/');
     }
-    return implode($pieces, '/');
+    return "{$this->endpoint}/{$route}";
+  }
+
+  /**
+   *
+   */
+  protected function geometry() {
+    if (!$this->processed || $reset) {
+      $this->process();
+    }
+    geophp_load();
+    return \geoPHP::geometryReduce(array_values($this->geometries));
+  }
+
+  public function getBBox() {
+    return $this->geometry()->getBBox();
   }
 
   /**
@@ -74,6 +117,9 @@ class Resource {
     return $this->featureCollection($this->features);
   }
 
+  /**
+   *
+   */
   public function featureCollection(array $features) {
     $collection = new \stdclass();
     $collection->type = 'FeatureCollection';
@@ -99,6 +145,10 @@ class Resource {
     $feature->geometry = $geometry->out('json', TRUE);
     $feature->properties = $properties;
     return $feature;
+  }
+
+  public function endpoint() {
+    return $this->endpoint;
   }
 
 }
