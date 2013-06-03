@@ -139,10 +139,10 @@ class Resource {
    * @return
    *    An array structured as a GeoJSON Feature.
    */
-  public function feature(\Geometry $geometry, Array $properties = array()) {
+  public function feature($geometry, Array $properties = array()) {
     $feature = new \stdclass();
     $feature->type = 'Feature';
-    $feature->geometry = $geometry->out('json', TRUE);
+    $feature->geometry = is_null($geometry) ? NULL : $geometry->out('json', TRUE);
     $feature->properties = $properties;
     return $feature;
   }
