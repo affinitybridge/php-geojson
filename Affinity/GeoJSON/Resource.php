@@ -38,7 +38,6 @@ class Resource {
    *
    */
   public function __construct($endpoint, $info, $data = NULL) {
-    error_log('Resource::__construct() ' . print_r($info, 1));
     $this->factory_info = $info;
 
     $this->endpoint = $endpoint;
@@ -51,7 +50,6 @@ class Resource {
    */
   protected function ensureFactory() {
     if (!$this->factory) {
-      error_log('Resource::ensureFactory() ' . print_r($this->factory_info, 1));
       $class = new \ReflectionClass($this->factory_info['factory']);
       if (!$class->isSubclassOf('Affinity\GeoJSON\FeatureFactory'))
         throw new \RuntimeException('Invalid feature factory.');
