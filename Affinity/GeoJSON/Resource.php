@@ -85,13 +85,11 @@ class Resource {
       $feature = $this->cache ? $this->cache->get($cid) : NULL;
 
       if (empty($feature)) {
-        error_log("Resource::process() Cache miss! : $cid");
         $geom = $this->factory->geometry($item);
         $properties = $this->factory->properties($item);
         $feature = $this->feature($geom, $properties);
 
         if ($this->cache) {
-          error_log("Resource::process() Setting cache : $cid");
           $this->cache->set($cid, $feature);
         }
       }
