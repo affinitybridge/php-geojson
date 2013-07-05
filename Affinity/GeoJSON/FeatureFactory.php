@@ -6,12 +6,28 @@ namespace Affinity\GeoJSON;
  *
  */
 abstract class FeatureFactory {
-  public function __construct($info) {}
+  /**
+   *
+   */
+  abstract public function __construct($info);
 
+  /**
+   *
+   */
   abstract public function geometry($item);
 
+  /**
+   *
+   */
   public function properties($item) {
     return array();
+  }
+
+  /**
+   *
+   */
+  public function id($item) {
+    return NULL;
   }
 
   /**
@@ -38,7 +54,7 @@ abstract class FeatureFactory {
    *    A GeoPHP Geometry object representing the $object value
    *    converted according to the above rules.
    */
-  function createGeoPHPGeometry($object, $to_geom = NULL) {
+  protected function createGeoPHPGeometry($object, $to_geom = NULL) {
     geophp_load();
 
     if (empty($object)) {
