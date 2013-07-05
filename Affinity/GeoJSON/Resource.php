@@ -34,6 +34,9 @@ class Resource {
   /* */
   protected $data;
 
+  /* */
+  protected $cache;
+
   /**
    *
    */
@@ -43,6 +46,10 @@ class Resource {
     $this->endpoint = $endpoint;
     $this->route = $info['route'];
     $this->data = $data;
+
+    if (isset($info['cache']) && $info['cache'] instanceof CacheInterface) {
+      $this->cache = $info['cache'];
+    }
   }
 
   /**
@@ -70,9 +77,26 @@ class Resource {
       $this->data = call_user_func($this->data);
     }
 
-    foreach ($this->data as $key => $item) {
-      $this->geometries[$key] = $this->factory->geometry($item);
-      $this->properties[$key] = $this->factory->properties($item);
+    foreach ($this->data as $item) {
+      $id = $this->factory->id($item);
+      $factory = $this->factory_info['factory'];
+      $cid = "geojson:$id:$factory";
+
+      $feature = $this->cache ? $this->cache->get($cid) : NULL;
+
+      if (empty($feature)) {
+        error_log("Resource::process() Cache miss! : $cid");
+        $geom = $this->factory->geometry($item);
+        $properties = $this->factory->properties($item);
+        $feature = $this->feature($geom, $properties);
+
+        if ($this->cache) {
+          error_log("Resource::process() Setting cache : $cid");
+          $this->cache->set($cid, $feature);
+        }
+      }
+
+      $this->features[] = $feature;
     }
   }
 
@@ -100,7 +124,12 @@ class Resource {
       $this->process();
     }
     geophp_load();
-    return \geoPHP::geometryReduce(array_values($this->geometries));
+    return \geoPHP::geometryReduce(array_map(function ($feature) {
+      // TODO: GeoPHP cannot parse an array-based representation of a GeoJSON
+      //       object. We have to encode the array then parse the JSON string.
+      $json = json_encode($feature->geometry);
+      return \geoPHP::load($json, 'json');
+    }, $this->features));
   }
 
   public function getBBox() {
@@ -115,13 +144,13 @@ class Resource {
       $this->process();
     }
 
-    if (!empty($this->data) && empty($this->features) || $reset) {
-      foreach ($this->data as $key => $item) {
-        $geom = $this->geometries[$key];
-        $properties = $this->properties[$key];
-        $this->features[] = $this->feature($geom, $properties);
-      }
-    }
+    // if (!empty($this->data) && empty($this->features) || $reset) {
+    //   foreach ($this->data as $key => $item) {
+    //     $geom = $this->geometries[$key];
+    //     $properties = $this->properties[$key];
+    //     $this->features[] = $this->feature($geom, $properties);
+    //   }
+    // }
 
     if (count($this->features) === 1) {
       return array_shift($this->features);
