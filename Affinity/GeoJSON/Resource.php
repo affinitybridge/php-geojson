@@ -47,7 +47,7 @@ class Resource {
     $this->route = $info['route'];
     $this->data = $data;
 
-    if (isset($info['cache']) && $info['cache'] instanceof CacheInterface) {
+    if (isset($info['cache'])) { // && $info['cache'] instanceof CacheInterface) {
       $this->cache = $info['cache'];
     }
   }
