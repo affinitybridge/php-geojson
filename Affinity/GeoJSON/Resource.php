@@ -135,7 +135,7 @@ class Resource {
 
     if (empty($bbox)) {
       $bbox = $this->geometry()->getBBox();
-      $this->cache->set("geojson:{$this->uri()}:bbox", $bbox);
+      $this->cache->set("geojson:{$this->uri()}:bbox", $bbox, CACHE_TEMPORARY);
     }
 
     return $bbox;
