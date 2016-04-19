@@ -131,7 +131,14 @@ class Resource {
   }
 
   public function getBBox() {
-    return $this->geometry()->getBBox();
+    $bbox = $this->cache ? $this->cache->get("geojson:{$this->uri()}:bbox") : array();
+
+    if (empty($bbox)) {
+      $bbox = $this->geometry()->getBBox();
+      $this->cache->set("geojson:{$this->uri()}:bbox", $bbox);
+    }
+
+    return $bbox;
   }
 
   /**
